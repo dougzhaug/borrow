@@ -18,6 +18,7 @@ class HomeController extends Controller
     }
 
     /**
+     * 美图录
      * Show the application dashboard.
      *
      * @return \Illuminate\Http\Response
@@ -36,6 +37,11 @@ class HomeController extends Controller
             print $node->text()."\n";
         });
 
+        //标签
+        $crawler->filter('.fenxiang_l > a')->each(function ($node) {
+            print $node->text()."\n";
+        });
+
         //图片地址
         for($i=1;$i<=100;$i++){
             sleep(rand(3,10));
@@ -45,10 +51,6 @@ class HomeController extends Controller
             }
         }
 
-        //标签
-        $crawler->filter('.fenxiang_l > a')->each(function ($node) {
-            print $node->text()."\n";
-        });
         dd($crawler);die;
         return view('home');
     }
@@ -78,5 +80,52 @@ class HomeController extends Controller
             return $download;
         }
         return $contents;
+    }
+
+    /**
+     * 妹子图
+     */
+    public function mzitu()
+    {
+        set_time_limit (0);
+        $client = new Client();
+
+        $crawler = $client->request('GET', 'https://www.mzitu.com/189321');
+
+        //标题
+        print $crawler->filter('.main-title')->text();
+
+        $crawler->filter('.main-meta > span')->each(function ($node,$k) {
+            //分类
+            if($k == 0){
+                print $node->filter('a')->text();
+            }
+            //发布时间
+            if($k == 1){
+                print explode(' ',$node->text())[1];
+            }
+        });
+
+        //标签
+        $crawler->filter('.main-tags > a')->each(function ($node,$k) {
+            print $node->text().'<br/>';
+        });
+
+        for ($i=1;$i<=100;$i++){
+            sleep(rand(3,10));
+            $crawler = $client->request('GET', 'https://www.mzitu.com/189321/'.$i);
+            $title = $crawler->filter('title')->text();
+            if(strpos($title,'404') !== false){
+                break;
+            }
+
+            $img_url = $crawler->filter('div.main-image > p > a > img')->attr('src');
+            $res = $this->curl($img_url,'https://www.mzitu.com','d:/img/'.$i.'.jpg');
+            if(!$res){
+                break;
+            }
+        }
+
+        dd($crawler);die;
     }
 }
